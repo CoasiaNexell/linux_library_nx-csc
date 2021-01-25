@@ -23,6 +23,16 @@ int cscYV12ToYV12(  char *srcY, char *srcU, char *srcV,
                     uint32_t srcStride, uint32_t dstStrideY, uint32_t dstStrideUV,
                     uint32_t width, uint32_t height );
 
+int cscNV21ToNV21(char *srcY, char *srcCbCr, char *dstY, char *dstCbCr,
+				  uint32_t srcStrideY, uint32_t srcStrideUV,
+				  uint32_t dstStrideY, uint32_t dstStrideUV,
+				  uint32_t width, uint32_t height);
+
+int cscNV21ToNV12(char *srcY, char *srcCbCr, char *dstY, char *dstCbCr,
+				  uint32_t srcStrideY, uint32_t srcStrideUV,
+				  uint32_t dstStrideY, uint32_t dstStrideUV,
+				  uint32_t width, uint32_t height);
+
 #ifdef __cplusplus
 }
 #endif

@@ -167,47 +167,7 @@ int cscARGBToNV21(char *src, char *dstY, char *dstCbCr, uint32_t srcWidth, uint3
 	return 0;
 }
 
-//  Copy Virtual Address Space to H/W Addreadd Space
-int cscYV12ToYV12(  char *srcY, char *srcU, char *srcV,
-                    char *dstY, char *dstU, char *dstV,
-                    uint32_t srcStride, uint32_t dstStrideY, uint32_t dstStrideUV,
-                    uint32_t width, uint32_t height )
-{
-    uint32_t i, j;
-    char *pSrc = srcY;
-    char *pDst = dstY;
-    char *pSrc2 = srcV;
-    char *pDst2 = dstV;
-    //  Copy Y
-    if( srcStride == dstStrideY )
-    {
-        memcpy( dstY, srcY, srcStride*height );
-    }
-    else
-    {
-        for( i=0 ; i<height; i++ )
-        {
-            memcpy(pDst, pSrc, width);
-            pSrc += srcStride;
-            pDst += dstStrideY;
-        }
-    }
-    //  Copy UV
-    pSrc = srcU;
-    pDst = dstU;
-    height /= 2;
-    width /= 2;
-    for( i=0 ; i<height ; i++ )
-    {
-        memcpy( pDst , pSrc , width );
-        memcpy( pDst2, pSrc2, width );
-        pSrc += srcStride/2;
-        pDst += dstStrideUV;
-        pSrc2 += srcStride/2;
-        pDst2 += dstStrideUV;
-    }
-    return 0;
-}
+
 
 void csc_ARGB8888_to_NV12(unsigned char *dstY, unsigned char *dstCbCr, unsigned char *src, unsigned int Width, unsigned int Height, uint32_t dstStrideY, uint32_t dstStrideUV)
 {
@@ -285,4 +245,105 @@ void csc_ARGB8888_to_NV21(unsigned char *dstY, unsigned char *dstCbCr, unsigned 
 		dstY = dstY + dstStrideY;
 		dstCbCr = dstCbCr + dstStrideUV/2;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//																			//
+//																			//
+//  		Copy Virtual Address Space to H/W Addreadd Space				//
+//				: YV12 to YV12												//
+//				: NV21 to NV21												//
+//																			//
+//																			//
+///////////////////////////////////////////////////////////////////////////////
+int cscYV12ToYV12(  char *srcY, char *srcU, char *srcV,
+                    char *dstY, char *dstU, char *dstV,
+                    uint32_t srcStride, uint32_t dstStrideY, uint32_t dstStrideUV,
+                    uint32_t width, uint32_t height )
+{
+    uint32_t i, j;
+    char *pSrc = srcY;
+    char *pDst = dstY;
+    char *pSrc2 = srcV;
+    char *pDst2 = dstV;
+    //  Copy Y
+    if( srcStride == dstStrideY )
+    {
+        memcpy( dstY, srcY, srcStride*height );
+    }
+    else
+    {
+        for( i=0 ; i<height; i++ )
+        {
+            memcpy(pDst, pSrc, width);
+            pSrc += srcStride;
+            pDst += dstStrideY;
+        }
+    }
+    //  Copy UV
+    pSrc = srcU;
+    pDst = dstU;
+    height /= 2;
+    width /= 2;
+    for( i=0 ; i<height ; i++ )
+    {
+        memcpy( pDst , pSrc , width );
+        memcpy( pDst2, pSrc2, width );
+        pSrc += srcStride/2;
+        pDst += dstStrideUV;
+        pSrc2 += srcStride/2;
+        pDst2 += dstStrideUV;
+    }
+    return 0;
+}
+
+int cscNV21ToNV21(char *srcY, char *srcCbCr, char *dstY, char *dstCbCr,
+				  uint32_t srcStrideY, uint32_t srcStrideUV,
+				  uint32_t dstStrideY, uint32_t dstStrideUV,
+				  uint32_t width, uint32_t height)
+{
+	uint32_t i;
+	//	copy Y
+	for( i=0 ; i<height; i++ )
+	{
+		memcpy(dstY, srcY, width);
+		srcY += srcStrideY;
+		dstY += dstStrideY;
+	}
+	//	copy VU
+	for( i=0 ; i<height/2; i++ )
+	{
+		memcpy(dstCbCr, srcCbCr, width);
+		srcCbCr += srcStrideUV;
+		dstCbCr += dstStrideUV;
+	}
+	return 0;
+}
+
+int cscNV21ToNV12(char *srcY, char *srcCbCr, char *dstY, char *dstCbCr,
+				  uint32_t srcStrideY, uint32_t srcStrideUV,
+				  uint32_t dstStrideY, uint32_t dstStrideUV,
+				  uint32_t width, uint32_t height)
+{
+	uint32_t i, j;
+	//	copy Y
+	for( i=0 ; i<height; i++ )
+	{
+		memcpy(dstY, srcY, width);
+		srcY += srcStrideY;
+		dstY += dstStrideY;
+	}
+
+	//	VU -> UV
+	for( i=0 ; i<height/2; i++ )
+	{
+		for( j=0 ; j<width ; j+=2 )
+		{
+			dstCbCr[j] = srcCbCr[j+1];
+			dstCbCr[j+1] = srcCbCr[j];
+		}
+		srcCbCr += srcStrideUV;
+		dstCbCr += dstStrideUV;
+	}
+	return 0;
 }
